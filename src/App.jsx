@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginScreen from './LoginScreen';
 import BookScreen from './BookScreen';
+import DashboardScreen from './DashboardScreen'; 
+import MainLayout from './MainLayout';         
 
 axios.defaults.baseURL = "http://localhost:3000"
 
@@ -15,7 +17,8 @@ function App() {
   }
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (token) {
       axios.defaults.headers.common = { 'Authorization': `bearer ${token}` }
       setIsAuthenticated(true)
@@ -25,15 +28,42 @@ function App() {
   return (
     <Router>
       <Routes>
+        
         <Route 
           path="/login" 
-          element={!isAuthenticated ? <LoginScreen onLoginSuccess={handleLoginSuccess}/> : <Navigate to="/books" />} 
+          element={!isAuthenticated ? <LoginScreen onLoginSuccess={handleLoginSuccess}/> : <Navigate to="/books" replace />} 
         />
+        
+       
         <Route 
           path="/books" 
-          element={isAuthenticated ? <BookScreen/> : <Navigate to="/login" />} 
+          element={
+            isAuthenticated ? (
+              <MainLayout onLogout={() => setIsAuthenticated(false)}>
+                <BookScreen />
+              </MainLayout>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } 
         />
-        <Route path="*" element={<Navigate to={isAuthenticated ? "/books" : "/login"} />} />
+
+       
+        <Route 
+          path="/dashboard" 
+          element={
+            isAuthenticated ? (
+              <MainLayout onLogout={() => setIsAuthenticated(false)}>
+                <DashboardScreen />
+              </MainLayout>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } 
+        />
+
+        
+        <Route path="*" element={<Navigate to={isAuthenticated ? "/books" : "/login"} replace />} />
       </Routes>
     </Router>
   )
