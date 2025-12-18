@@ -1,6 +1,6 @@
 import './App.css'
 import { useState, useEffect } from 'react';
-import { Divider, Spin } from 'antd';
+import { Divider, Spin, message } from 'antd'; 
 import axios from 'axios'
 import BookList from './components/BookList'
 import AddBook from './components/AddBook';
@@ -52,12 +52,31 @@ function BookScreen() {
   }
 
   const handleLikeBook = async (book) => {
+    const likedBooks = JSON.parse(localStorage.getItem('likedBooks') || '[]');
+    const isAlreadyLiked = likedBooks.includes(book.id);
+
     setLoading(true)
     try {
-      const response = await axios.patch(URL_BOOK + `/${book.id}`, { likeCount: book.likeCount + 1 });
+      const newLikeCount = isAlreadyLiked 
+        ? Math.max(0, book.likeCount - 1) 
+        : book.likeCount + 1;
+
+      await axios.patch(URL_BOOK + `/${book.id}`, { likeCount: newLikeCount });
+      
+      let newLikedBooks;
+      if (isAlreadyLiked) {
+        newLikedBooks = likedBooks.filter(id => id !== book.id);
+        message.info('ยกเลิกการถูกใจแล้ว');
+      } else {
+        newLikedBooks = [...likedBooks, book.id];
+        message.success('ถูกใจหนังสือเล่มนี้แล้ว');
+      }
+      
+      localStorage.setItem('likedBooks', JSON.stringify(newLikedBooks));
       fetchBooks();
     } catch (error) {
       console.error('Error liking book:', error);
+      message.error('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
     } finally {
       setLoading(false);
     }
@@ -105,7 +124,13 @@ function BookScreen() {
       </Divider>
       <Spin spinning={loading}>
         <BookList 
-          data={bookData} 
+          
+          data={bookData.map(book => ({
+            ...book,
+            
+            isLiked: JSON.parse(localStorage.getItem('likedBooks') || '[]').includes(book.id)
+          }))} 
+          
           onLiked={handleLikeBook}
           onDeleted={handleDeleteBook}
           onEdit={book => setEditBook(book)}
