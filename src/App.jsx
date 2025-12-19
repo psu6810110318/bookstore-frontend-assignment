@@ -6,8 +6,9 @@ import LoginScreen from './LoginScreen';
 import BookScreen from './BookScreen';
 import DashboardScreen from './DashboardScreen'; 
 import MainLayout from './MainLayout';         
-// Import ไฟล์ใหม่เข้ามา
 import CategoryScreen from './CategoryScreen';
+// Import ไฟล์ใหม่
+import BookFormScreen from './BookFormScreen';
 
 axios.defaults.baseURL = "http://localhost:3000"
 
@@ -47,7 +48,33 @@ function App() {
           } 
         />
 
-        {/* เพิ่ม Route ใหม่สำหรับจัดการ Category */}
+        {/* --- เพิ่ม Route ใหม่ 2 อันนี้ --- */}
+        <Route 
+          path="/books/add" 
+          element={
+            isAuthenticated ? (
+              <MainLayout onLogout={() => setIsAuthenticated(false)}>
+                <BookFormScreen />
+              </MainLayout>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } 
+        />
+        <Route 
+          path="/books/edit/:id" 
+          element={
+            isAuthenticated ? (
+              <MainLayout onLogout={() => setIsAuthenticated(false)}>
+                <BookFormScreen />
+              </MainLayout>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } 
+        />
+        {/* ----------------------------- */}
+
         <Route 
           path="/categories" 
           element={
