@@ -6,6 +6,8 @@ import LoginScreen from './LoginScreen';
 import BookScreen from './BookScreen';
 import DashboardScreen from './DashboardScreen'; 
 import MainLayout from './MainLayout';         
+// Import ไฟล์ใหม่เข้ามา
+import CategoryScreen from './CategoryScreen';
 
 axios.defaults.baseURL = "http://localhost:3000"
 
@@ -17,7 +19,6 @@ function App() {
   }
 
   useEffect(() => {
-    
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (token) {
       axios.defaults.headers.common = { 'Authorization': `bearer ${token}` }
@@ -28,13 +29,11 @@ function App() {
   return (
     <Router>
       <Routes>
-        
         <Route 
           path="/login" 
           element={!isAuthenticated ? <LoginScreen onLoginSuccess={handleLoginSuccess}/> : <Navigate to="/books" replace />} 
         />
         
-       
         <Route 
           path="/books" 
           element={
@@ -48,6 +47,19 @@ function App() {
           } 
         />
 
+        {/* เพิ่ม Route ใหม่สำหรับจัดการ Category */}
+        <Route 
+          path="/categories" 
+          element={
+            isAuthenticated ? (
+              <MainLayout onLogout={() => setIsAuthenticated(false)}>
+                <CategoryScreen />
+              </MainLayout>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          } 
+        />
        
         <Route 
           path="/dashboard" 
@@ -62,7 +74,6 @@ function App() {
           } 
         />
 
-        
         <Route path="*" element={<Navigate to={isAuthenticated ? "/books" : "/login"} replace />} />
       </Routes>
     </Router>

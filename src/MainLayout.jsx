@@ -1,7 +1,8 @@
 import React from 'react';
 import { Layout, Menu, Button } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom'; 
-import { LogoutOutlined, BookOutlined, DashboardOutlined } from '@ant-design/icons';
+// เพิ่ม TagsOutlined เข้ามา
+import { LogoutOutlined, BookOutlined, DashboardOutlined, TagsOutlined } from '@ant-design/icons';
 import axios from 'axios'; 
 
 const { Header, Content } = Layout;
@@ -11,17 +12,10 @@ export default function MainLayout({ children, onLogout }) {
   const location = useLocation(); 
 
   const handleLogout = () => {
-   
     localStorage.removeItem('token');
     sessionStorage.removeItem('token');
-    
-    
     delete axios.defaults.headers.common['Authorization'];
-
-    
     onLogout(); 
-    
-    
     navigate('/login', { replace: true });
   };
 
@@ -68,6 +62,10 @@ export default function MainLayout({ children, onLogout }) {
         >
           <Menu.Item key="/books" icon={<BookOutlined />} onClick={() => navigate('/books')}>
             จัดการหนังสือ
+          </Menu.Item>
+          {/* เพิ่มเมนู Category ตรงนี้ */}
+          <Menu.Item key="/categories" icon={<TagsOutlined />} onClick={() => navigate('/categories')}>
+            หมวดหมู่
           </Menu.Item>
           <Menu.Item key="/dashboard" icon={<DashboardOutlined />} onClick={() => navigate('/dashboard')}>
             แดชบอร์ด
