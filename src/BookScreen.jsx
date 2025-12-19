@@ -44,8 +44,10 @@ function BookScreen() {
     try {
       const response = await axios.post(URL_BOOK, book);
       fetchBooks();
+      message.success('เพิ่มหนังสือสำเร็จ');
     } catch (error) {
       console.error('Error adding book:', error);
+      message.error('เพิ่มหนังสือไม่สำเร็จ');
     } finally {
       setLoading(false);
     }
@@ -85,29 +87,46 @@ function BookScreen() {
   const handleDeleteBook = async (bookId) => {
     setLoading(true)
     try {
-      const response = await axios.delete(URL_BOOK + `/${bookId}`);
+      await axios.delete(URL_BOOK + `/${bookId}`);
       fetchBooks();
+      message.success('ลบหนังสือสำเร็จ');
     } catch (error) {
       console.error('Error deleting book:', error);
+      message.error('ลบหนังสือไม่สำเร็จ');
     } finally {
       setLoading(false);
     }
   }
 
+  // --- จุดที่แก้ไขหลัก ---
   const handleEditBook = async (book) => {
     setLoading(true)
     try {
-      const editedData = {...book, 'price': Number(book.price), 'stock': Number(book.stock)}
-      const {id, category, createdAt, updatedAt, ...data} = editedData
-      const response = await axios.patch(URL_BOOK + `/${id}`, data);
+      // สร้าง object ใหม่ที่ระบุเฉพาะ field ที่ Backend ต้องการจริงๆ
+      // เพื่อป้องกัน field ส่วนเกินเช่น isLiked, category object, createdAt ฯลฯ ติดไป
+      const dataPayload = {
+        title: book.title,
+        author: book.author,
+        price: Number(book.price),
+        stock: Number(book.stock),
+        categoryId: book.categoryId, // ค่านี้ต้องมาจาก form ใน EditBook
+        isbn: book.isbn,
+        description: book.description,
+        coverUrl: book.coverUrl
+      }
+
+      await axios.patch(URL_BOOK + `/${book.id}`, dataPayload);
       fetchBooks();
+      message.success('แก้ไขข้อมูลสำเร็จ');
     } catch (error) {
       console.error('Error editing book:', error);
+      message.error('แก้ไขข้อมูลไม่สำเร็จ');
     } finally {
       setLoading(false);
       setEditBook(null);
     }
   }
+  // ---------------------
 
   useEffect(() => {
     fetchCategories();
@@ -124,13 +143,11 @@ function BookScreen() {
       </Divider>
       <Spin spinning={loading}>
         <BookList 
-          
           data={bookData.map(book => ({
             ...book,
-            
+            // Map isLiked สำหรับแสดงผล แต่ตอนส่งกลับต้องระวังอย่าให้ติดไป
             isLiked: JSON.parse(localStorage.getItem('likedBooks') || '[]').includes(book.id)
           }))} 
-          
           onLiked={handleLikeBook}
           onDeleted={handleDeleteBook}
           onEdit={book => setEditBook(book)}
